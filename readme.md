@@ -1,5 +1,10 @@
 # Software Development Course Projects
-These are projects completed for the Software Development course.
+These are projects completed for the Software Development course. These assignments were handed out as existing codebases that we were tasked with completing or extending.
+
+There is some messy code and bizzare inconsistencies that I'd have loved to avoid if I were writing everything from scratch. Ah well. ʕノ•ᴥ•ʔノ ︵ ┻━┻
+
+Each project features the actual source as well as fairly high-coverage unit testing for additions to the existing codebase. 
+Also included in this repo is SVN data. During the course's progress, SVN was used for version control and project submission for grading.
 
 ## SlidingPuzzle
 Java app. Name is fairly self-explanatory. Interesting algorithms implemented there include BFS for dragging tiles around and A* / A-Star pathfinding to try and find good solutions.
