@@ -4,7 +4,7 @@ As a result there is some messy code and bizzare inconsistencies that I'd have l
 
 Each project features the actual source as well as fairly high-coverage unit testing for additions to the existing codebase. 
 Javadocs have been generated for new and modified code.
-Also included in this repo is SVN data. During the course's progress, SVN was used for version control and project submission for grading.
+Also included in old commits is SVN data. During the course's progress, SVN was used for version control and project submission for grading.
 
 ## SlidingPuzzle
 Java app. Name is fairly self-explanatory. Interesting algorithms implemented there include BFS for dragging tiles around and A* / A-Star pathfinding to try and find good solutions.
