@@ -1,9 +1,9 @@
 # Software Development Course Projects
-These are projects completed for the Software Development course. These assignments were handed out as existing codebases that we were tasked with completing or extending.
-
-There is some messy code and bizzare inconsistencies that I'd have loved to avoid if I were writing everything from scratch. Ah well. ʕノ•ᴥ•ʔノ ︵ ┻━┻
+These are projects completed for the Software Development course. These assignments were handed out as existing codebases that we were tasked with completing or extending. 
+As a result there is some messy code and bizzare inconsistencies that I'd have loved to avoid if I were writing everything from scratch. Ah well. I feel that my own code is pretty readable in comparison to what we were given to work with. ʕノ•ᴥ•ʔノ ︵ ┻━┻
 
 Each project features the actual source as well as fairly high-coverage unit testing for additions to the existing codebase. 
+Javadocs have been generated for new and modified code.
 Also included in this repo is SVN data. During the course's progress, SVN was used for version control and project submission for grading.
 
 ## SlidingPuzzle
