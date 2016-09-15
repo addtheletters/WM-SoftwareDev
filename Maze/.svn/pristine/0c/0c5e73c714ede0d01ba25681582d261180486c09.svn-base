@@ -1,0 +1,62 @@
+package generation;
+
+import static org.junit.Assert.*;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import generation.Order.Builder;
+
+public class MazeFactoryTest {
+	private static final int ORDER_SKILL = 3;
+	private MazeFactory factory1;
+	
+	@Before
+	public void setUp(){
+		factory1 = new MazeFactory(true);
+		
+	}
+	
+	@Test
+	public final void testSmoothCancelDFS(){
+		testSmoothCancel(Builder.DFS);
+	}
+	
+	@Test
+	public final void testDeterministicDFS(){
+		testDeterministic(Builder.DFS);
+	}
+	
+	private static TestOrder makeTestOrder(Builder builder){
+		return new TestOrder(ORDER_SKILL, builder, true);
+	}
+	
+	public final void testSmoothCancel(Builder builder){
+		TestOrder interrupted = makeTestOrder(builder);
+		boolean orderSuccess = factory1.order(interrupted);
+		assertTrue("Order should succeed", orderSuccess);
+		factory1.cancel();
+		
+		TestOrder secondOrder = makeTestOrder(builder);
+		boolean secondSuccess = factory1.order(secondOrder);
+		assertTrue("Second order should succeed", secondSuccess);
+		factory1.waitTillDelivered();
+		assertTrue("Second order should be delivered", secondOrder.isDelivered());
+	}
+	
+	public final void testDeterministic(Builder builder){
+		TestOrder firstOrder = makeTestOrder(builder);
+		boolean firstSuccess = factory1.order(firstOrder);
+		assertTrue("Order should succeed", firstSuccess);
+		factory1.waitTillDelivered();
+		
+		TestOrder secondOrder = makeTestOrder(builder);
+		boolean secondSuccess = factory1.order(secondOrder);
+		assertTrue("Second order should succeed", secondSuccess);
+		factory1.waitTillDelivered();
+		
+		assertEquals("Order results should be identical", firstOrder.getResult(), secondOrder.getResult());
+	}
+	
+	
+}

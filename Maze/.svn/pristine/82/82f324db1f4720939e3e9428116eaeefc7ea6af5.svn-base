@@ -1,0 +1,142 @@
+package falstad;
+
+import static org.junit.Assert.*;
+
+import java.awt.Point;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import generation.CardinalDirection;
+
+public class BasicRobotTest extends BasicRobot{
+
+	@Before
+	public void setUp(){
+		reset();
+		setMaze( new MazeController("test/data/input.xml") );
+		getMaze().init();
+		
+		//getMaze().getMazeConfiguration().getMazedists().prettyPrint();
+	}
+	
+	/**
+	 * Tests that getCurrentPosition and getCurrentPoint of BasicRobot work correctly.
+	 * 
+	 * Used independently, tests correctness in the initial position.
+	 * Can also be used to verify correct position values after motion.
+	 */
+	@Test
+	public final void testGetPosition(){
+		int[] correctPos = getMaze().getCurrentPosition();
+		Point correctPoint = new Point(correctPos[0], correctPos[1]);
+		int[] current = null;
+		try{
+			current = getCurrentPosition();
+		}
+		catch(Exception e){
+			assertTrue("Exception occurred on getting position " + correctPoint.x + "," + correctPoint.y, false);
+		}
+		assertArrayEquals("Position (arrays) should be the same as maze controller", correctPos, current);
+		assertEquals("Position (points) should be the same as maze controller", correctPoint, getCurrentPoint());
+	}
+	
+	/**
+	 * Tests that getCurrentDirection of BasicRobot works correctly.
+	 * Used independently, tests correctness in the initial position.
+	 * Can also be used to verify correct direction values after motion.
+	 */
+	@Test
+	public final void testGetDirection(){
+		assertEquals("Direction should reflect direction faced in MazeController", getMaze().getCurrentDirection(), getCurrentDirection() );
+	}
+	
+	/**
+	 * Tests that move correctly navigates the maze.
+	 * 
+	 * On the input.xml maze, the robot starts in a long hallway with space to move forwards.
+	 */
+	@Test
+	public final void testMove (){
+		int[] startPos = getMaze().getMazeConfiguration().getStartingPosition();
+		Point startPoint = new Point( startPos[0], startPos[1] );
+		assertEquals("Starts in position", startPoint,  getCurrentPoint());
+		assertEquals("Starts facing to the east", CardinalDirection.East, getCurrentDirection());
+		
+		// Test that moving 0 does nothing
+		move(0, false);
+		assertEquals("Still in start", startPoint, getCurrentPoint());
+		
+		// Test moving 1 forwards. Should successfully move
+		move(1, false);
+		Point followPos = new Point(startPoint);
+		int[] followDir = null;
+		followDir = CardinalDirection.East.getDirection();
+		followPos.translate( followDir[0], followDir[1] );
+		assertEquals("Now shifted position", followPos, getCurrentPoint());
+		assertEquals("Facing same way", CardinalDirection.East, getCurrentDirection());
+		
+		// Test moving far forwards, should hit wall after moving 10 and be in followPos
+		int attemptDistance = 100;
+		move(attemptDistance, false);
+		int actualDistance = 10;
+		followPos.translate(actualDistance * followDir[0], actualDistance * followDir[1]);
+		assertEquals("Should have reached", followPos, getCurrentPoint());
+		
+		// Verify that get for position and direction have not failed after movement
+		testGetPosition();
+		testGetDirection();
+	}
+	
+	/**
+	 * Tests that rotate correctly rotates.
+	 * 
+	 * Note: In MazeController, South and North directions are opposite to reality, resulting in unrealistic
+	 * relationships between the cardinal directions (turning left from west producing north rather than south).
+	 */
+	@Test
+	public final void testRotate(){
+		assertEquals("Starting facing east", CardinalDirection.East, getCurrentDirection());
+		rotate(Turn.AROUND);
+		assertEquals("Turnaround results in facing west", CardinalDirection.West, getCurrentDirection());
+		rotate(Turn.LEFT);
+		assertEquals("Left from west is south (down)", CardinalDirection.South, getCurrentDirection());
+		rotate(Turn.AROUND);
+		assertEquals("Turnaround results in facing north (up)", CardinalDirection.North, getCurrentDirection());
+		rotate(Turn.RIGHT); 
+		assertEquals("Right from north (up) is east", CardinalDirection.East, getCurrentDirection());
+	}
+
+	/**
+	 * Tests that distanceToObstacle correctly gives distances.
+	 */
+	@Test
+	public final void testDistanceToObstacle(){
+		int startDistanceFromFront = 11;
+		assertEquals("Back and side walls start directly adjacent", 0, distanceToObstacle(Direction.BACKWARD));
+		assertEquals("Back and side walls start directly adjacent", 0, distanceToObstacle(Direction.LEFT));
+		assertEquals("Back and side walls start directly adjacent", 0, distanceToObstacle(Direction.RIGHT));
+		assertEquals("Some distance away from wall in front", startDistanceFromFront, distanceToObstacle(Direction.FORWARD));
+		
+		int firstMove = 2;
+		move(firstMove, false);	
+		assertEquals("Back wall some distance away", firstMove, distanceToObstacle(Direction.BACKWARD));
+		assertEquals("Side walls directly adjacent", 0, distanceToObstacle(Direction.LEFT));
+		assertEquals("Side walls directly adjacent", 0, distanceToObstacle(Direction.RIGHT));
+		assertEquals("Front wall some distance away", startDistanceFromFront - firstMove,distanceToObstacle(Direction.FORWARD));
+		
+		// move the rest of the way to the end; short hallway should be open to the left
+		move(startDistanceFromFront - firstMove, false);
+		int sideHallSize = 2;
+		assertEquals("Back wall some distance away", startDistanceFromFront, distanceToObstacle(Direction.BACKWARD));
+		assertEquals("Side wall some distance away", sideHallSize, distanceToObstacle(Direction.RIGHT)); // appears on left in GUI
+		assertEquals("Opposite side wall directly adjacent", 0, distanceToObstacle(Direction.LEFT));
+		assertEquals("Front wall directly adjacent", 0, distanceToObstacle(Direction.FORWARD));
+	}
+	
+	@Test
+	public final void testWorldDirectionOf(){
+		
+	}
+	
+}

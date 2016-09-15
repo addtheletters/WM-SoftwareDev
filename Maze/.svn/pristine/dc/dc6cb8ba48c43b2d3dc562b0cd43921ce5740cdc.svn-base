@@ -1,0 +1,113 @@
+package falstad;
+
+import falstad.Robot.Direction;
+import generation.Distance;
+
+/**
+ * RobotDriver which attempts to reach an exit by following the walls of the maze.
+ * 
+ * CRC card:
+ * 
+ * WallFollower (RobotDriver)
+ * 
+ * Responsibilities:
+ * Give instructions to Robot so it reaches the exit
+ * 
+ * Collaborators:
+ * Robot which is driven
+ * 
+ * @author Ben
+ *
+ */
+public class WallFollower implements RobotDriver {
+
+	private Robot robot;
+	
+	protected int stepsTaken = 0;
+	protected float energyUsed = 0;
+	
+	protected boolean left;
+	
+//	private int mazeWidth;
+//	private int mazeHeight;
+
+	public WallFollower(){
+		left = false;
+	}
+	
+	public WallFollower(boolean followLeftSide){
+		left = followLeftSide;
+	}
+	
+	@Override
+	public void setRobot(Robot r) {
+		this.robot = r;
+	}
+
+	@Override
+	public void setDimensions(int width, int height) {
+		// is this necessary? I find it hard to see why. Could be removed later.
+//		mazeWidth = width;
+//		mazeHeight = height;
+	}
+
+	@Override
+	public void setDistance(Distance distance) {
+		System.out.println("Distance is not needed for WallFollower.");
+	}
+
+	@Override
+	public boolean drive2Exit() throws Exception {
+		// TODO test
+		// While not at the exit
+		// 		if no -side- wall
+		// 		turn to side, then continue forwards until
+				// 1. hit wall. then turn to other-side
+				// 2. wall ends. then turn -side- and continue
+		while(!robot.isAtGoal()){
+			System.out.println("Robot is at " + robot.getCurrentPosition()[0] + "," + robot.getCurrentPosition()[1]);
+			
+			if(hasSideWall()){
+				if(!hasFrontWall()){
+					robot.move(1, false);
+				}
+				else{
+					robot.rotate(primarySideDir().opposite().turn());
+				}
+			}
+			else{
+				robot.rotate(primarySideDir().turn());
+				robot.move(1, false);
+			}
+		}
+		return true;
+	}
+	
+	protected boolean hasSideWall(){
+		return robot.distanceToObstacle(primarySideDir()) == 0;
+	}
+	
+	protected boolean hasFrontWall(){
+		return robot.distanceToObstacle(Direction.FORWARD) == 0;
+	}
+	
+	protected Direction primarySideDir(){
+		if(left){
+			return Direction.LEFT;
+		}
+		else{
+			return Direction.RIGHT;
+		}
+	}
+
+	@Override
+	public float getEnergyConsumption() {
+		return energyUsed;
+	}
+
+	@Override
+	public int getPathLength() {
+		return stepsTaken;
+	}
+
+}

@@ -1,0 +1,64 @@
+package generation;
+
+public class TestOrder implements Order {
+	
+	private static final boolean SUPPRESS_PRINT = true;
+
+	public int skill;
+	public Builder builder;
+	public boolean perfect;
+	
+	private boolean delivered;
+	private MazeConfiguration result;
+	
+	public TestOrder(int skill, Builder builder, boolean perfect){
+		this.skill = skill;
+		this.builder = builder;
+		this.perfect = perfect;
+		this.delivered = false;
+	}
+	
+	@Override
+	public int getSkillLevel() {
+		return skill;
+	}
+
+	@Override
+	public Builder getBuilder() {
+		return builder;
+	}
+
+	@Override
+	public boolean isPerfect() {
+		return perfect;
+	}
+	
+	public MazeConfiguration getResult(){
+		if(!delivered){
+			if(!SUPPRESS_PRINT)
+				System.err.println("TestOrder: Attempted to get result of order which has not been delivered.");
+		}
+		return result;
+	}
+	
+	public boolean isDelivered(){
+		return delivered;
+	}
+
+	@Override
+	public void deliver(MazeConfiguration mazeConfig) {
+		this.result = mazeConfig;
+		this.delivered = true;
+		if(!SUPPRESS_PRINT){
+			System.out.println("TestOrder: Delivered. Maze cells are as follows.");
+			System.out.println(this.result.getMazecells());
+		}
+	}
+
+	@Override
+	public void updateProgress(int percentage) {
+		if(!SUPPRESS_PRINT)
+			System.out.println("TestOrder: Generation progress: " + percentage + "%");
+	}
+
+}

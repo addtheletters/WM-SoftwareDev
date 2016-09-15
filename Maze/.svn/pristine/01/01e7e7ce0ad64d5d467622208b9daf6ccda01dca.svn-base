@@ -1,0 +1,85 @@
+package generation;
+
+import static org.junit.Assert.*;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import generation.Order.Builder;
+
+public class MazeFactoryTest {
+	private static final int ORDER_SKILL = 3;
+	private MazeFactory deterministicFactory;
+	//private MazeFactory randomFactory;
+	
+	private static TestOrder constructTestOrder(Builder builder, boolean perfect){
+		return new TestOrder(ORDER_SKILL, builder, perfect);
+	}
+	
+	private boolean isSolveable(MazeConfiguration mazeConfig){
+		//TODO implement for real
+		
+		return true;
+	}
+	
+	@Before
+	public void setUp(){
+		deterministicFactory = new MazeFactory(true);
+		//randomFactory = new MazeFactory();	
+	}
+	
+	public final TestOrder placeOrder(Builder builder, boolean perfect){
+		TestOrder order = constructTestOrder(builder, perfect);
+		boolean success = deterministicFactory.order(order);
+		assertTrue("Order should succeed", success);
+		return order;
+	}
+	
+	public final TestOrder placeOrderAndWait(Builder builder, boolean perfect){
+		TestOrder order = placeOrder(builder, perfect);
+		deterministicFactory.waitTillDelivered();
+		assertTrue("Order should be delivered", order.isDelivered());
+		assertTrue("Result mazeConfig should be solveable", isSolveable(order.getResult()));
+		return order;
+	}
+	
+	@Test
+	public final void testOrderWhileBusyDFS(){
+		testOrderWhileBusy(Builder.DFS);
+	}
+	
+	private void testOrderWhileBusy(Builder builder) {
+		TestOrder firstOrder = placeOrder(builder, false);
+		TestOrder orderWhileBusy = constructTestOrder(builder, false);
+		boolean busySuccess = deterministicFactory.order(orderWhileBusy);
+		assertFalse("Order should fail", busySuccess);
+		deterministicFactory.waitTillDelivered();
+		
+		assertTrue("First order should be delivered", firstOrder.isDelivered());
+		assertFalse("Second order should not be delivered", orderWhileBusy.isDelivered());
+		assertTrue("Result mazeConfig should solveable", isSolveable(firstOrder.getResult()) );
+	}
+
+	@Test
+	public final void testSmoothCancelDFS(){
+		testSmoothCancel(Builder.DFS);
+	}
+	
+	public final void testSmoothCancel(Builder builder){
+		TestOrder interrupted = placeOrder(builder, false);
+		deterministicFactory.cancel();
+		TestOrder secondOrder = placeOrderAndWait(builder, false);
+	}
+	
+	@Test
+	public final void testDeterministicDFS(){
+		testDeterministic(Builder.DFS);
+	}
+	
+	public final void testDeterministic(Builder builder){
+		TestOrder firstOrder = placeOrderAndWait(builder, false);
+		TestOrder secondOrder = placeOrderAndWait(builder, false);
+		assertEquals("Order results should be identical", firstOrder.getResult().getMazecells(), secondOrder.getResult().getMazecells());
+	}
+	
+}

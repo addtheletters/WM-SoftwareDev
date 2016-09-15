@@ -1,0 +1,64 @@
+package generation;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import generation.Order.Builder;
+
+public class MazeBuilderKruskalTest {
+	private MazeFactoryTest mft;
+	
+	// Testing for Kruskal builder relies upon setup and methods of MazeFactoryTest.
+	@Before
+	public void setUp(){
+		mft = new MazeFactoryTest();
+		mft.setUp();
+	}
+	
+	/**
+	 * Test that a factory using the Kruskal builder correctly handles an order while busy
+	 * using {@link MazeFactoryTest#testOrderWhileBusy(Builder)}
+	 */
+	@Test
+	public final void testOrderWhileBusyKruskal(){
+		mft.testOrderWhileBusy(Builder.Kruskal);
+	}
+	
+	/**
+	 * Test that a factory using the Kruskal builder correctly generates both perfect (no rooms) and imperfect (with rooms) mazes
+	 * Uses {@link MazeFactoryTest#placeOrderAndWait(Builder, boolean)}
+	 */
+	@Test
+	public final void testPerfectImperfectKruskal(){
+		mft.placeOrderAndWait(Builder.Kruskal, false);
+		mft.placeOrderAndWait(Builder.Kruskal, true);
+	}
+	
+	/**
+	 * Test that a factory using the Kruskal builder correctly handles cancellation
+	 * using {@link MazeFactoryTest#testSmoothCancel(Builder)}
+	 */
+	@Test
+	public final void testSmoothCancelKruskal(){
+		mft.testSmoothCancel(Builder.Kruskal);
+	}
+	
+	/**
+	 * Test that a deterministic factory using the Kruskal builder can correctly, consistently generate the same maze 
+	 * using {@link MazeFactoryTest#testDeterministic(Builder)}
+	 */
+	@Test
+	public final void testDeterministicKruskal(){
+		mft.testDeterministic(Builder.Kruskal);
+	}
+	
+	/**
+	 * Test that a non-deterministic factory using the Kruskal builder generates inconsistent mazes between runs
+	 * using {@link MazeFactoryTest#testNonDeterministic(Builder)}
+	 */
+	@Test
+	public final void testNonDeterministicKruskal(){
+		mft.testNonDeterministic(Builder.Kruskal);
+	}
+	
+}

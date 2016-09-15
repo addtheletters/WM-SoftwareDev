@@ -1,0 +1,137 @@
+package generation;
+
+import static org.junit.Assert.*;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import generation.Order.Builder;
+
+public class MazeFactoryTest {
+	private static final int ORDER_SKILL = 3;
+	private MazeFactory deterministicFactory;
+	//private MazeFactory randomFactory;
+	
+	/**
+	 * Constructs a TestOrder object using static constants and the parameters given
+	 * @param builder The builder the order will specify
+	 * @param perfect true to specify a perfect (no holes or extra rooms) order, false otherwise.
+	 * @return A TestOrder object holding the specified values
+	 */
+	private static TestOrder constructTestOrder(Builder builder, boolean perfect){
+		return new TestOrder(ORDER_SKILL, builder, perfect);
+	}
+	
+	/**
+	 * Checks if all tiles in the maze configuration have been labeled with a valid distance from the exit.
+	 * @param mazeConfig configuration of the maze
+	 * @return true if all tiles have a valid distance; false otherwise
+	 */
+	private boolean allDistancesExist(MazeConfiguration mazeConfig){
+		int oneCount = 0;
+		int[][] allDists = mazeConfig.getMazedists().getDists();
+		for(int i = 0; i < allDists.length; i++){
+			for(int j = 0; j < allDists[0].length; j++){
+				if( allDists[i][j] == 1 ){
+					oneCount += 1;
+				}
+				if( allDists[i][j] <= 0){
+					return false;
+				}
+			}
+		}
+		return oneCount == 1;
+	}
+	
+	/**
+	 * Checks if a solution is specified from the provided position by following
+	 * {@link MazeConfiguration#getNeighborCloserToExit(int, int)}
+	 * @param mazeConfig configuration of the maze
+	 * @param position array of length 2 holding the (x,y) of the start position
+	 * @return true if the solution can be verified; false if it fails
+	 */
+	private boolean isSolveableFrom(MazeConfiguration mazeConfig, int[] start){
+		int[] position = { start[0], start[1] };
+		int distance = mazeConfig.getDistanceToExit(position[0], position[1]);
+		while(distance > 1){
+			position = mazeConfig.getNeighborCloserToExit(position[0], position[1]);
+			distance --;
+		}
+		return mazeConfig.getMazecells().isExitPosition(position[0], position[1]);
+	}
+	
+	private static int[] randomMazePosition( MazeConfiguration mazeConfig ){
+		int[] pos = { 	(int)(Math.random() * mazeConfig.getWidth()),
+						(int)(Math.random() * mazeConfig.getHeight()) };
+		return pos;
+	}
+	
+	private void checkMazeValid(MazeConfiguration mazeConfig){
+		assertTrue("All Maze cells should have valid distances to exit", allDistancesExist(mazeConfig));
+		assertTrue("Maze should be solveable from designed start", isSolveableFrom(mazeConfig, mazeConfig.getStartingPosition()));
+		assertTrue("Maze should be solveable from random position", isSolveableFrom(mazeConfig, randomMazePosition(mazeConfig)));
+	}
+	
+	@Before
+	public void setUp(){
+		deterministicFactory = new MazeFactory(true);
+		//randomFactory = new MazeFactory();	
+	}
+	
+	public final TestOrder placeOrder(Builder builder, boolean perfect){
+		TestOrder order = constructTestOrder(builder, perfect);
+		boolean success = deterministicFactory.order(order);
+		assertTrue("Order should succeed", success);
+		return order;
+	}
+	
+	public final TestOrder placeOrderAndWait(Builder builder, boolean perfect){
+		TestOrder order = placeOrder(builder, perfect);
+		deterministicFactory.waitTillDelivered();
+		assertTrue("Order should be delivered", order.isDelivered());
+		checkMazeValid(order.getResult());
+		//assertTrue("Result mazeConfig should be solveable", isSolveable(order.getResult()));
+		return order;
+	}
+	
+	@Test
+	public final void testOrderWhileBusyDFS(){
+		testOrderWhileBusy(Builder.DFS);
+	}
+	
+	public void testOrderWhileBusy(Builder builder) {
+		TestOrder firstOrder = placeOrder(builder, false);
+		TestOrder orderWhileBusy = constructTestOrder(builder, false);
+		boolean busySuccess = deterministicFactory.order(orderWhileBusy);
+		assertFalse("Order should fail", busySuccess);
+		deterministicFactory.waitTillDelivered();
+		
+		assertTrue("First order should be delivered", firstOrder.isDelivered());
+		assertFalse("Second order should not be delivered", orderWhileBusy.isDelivered());
+		checkMazeValid(firstOrder.getResult());
+		//assertTrue("Result mazeConfig should solveable", isSolveable(firstOrder.getResult()) );
+	}
+
+	@Test
+	public final void testSmoothCancelDFS(){
+		testSmoothCancel(Builder.DFS);
+	}
+	
+	public final void testSmoothCancel(Builder builder){
+		TestOrder interrupted = placeOrder(builder, false);
+		deterministicFactory.cancel();
+		TestOrder secondOrder = placeOrderAndWait(builder, false);
+	}
+	
+	@Test
+	public final void testDeterministicDFS(){
+		testDeterministic(Builder.DFS);
+	}
+	
+	public final void testDeterministic(Builder builder){
+		TestOrder firstOrder = placeOrderAndWait(builder, false);
+		TestOrder secondOrder = placeOrderAndWait(builder, false);
+		assertEquals("Order results should be identical", firstOrder.getResult().getMazecells(), secondOrder.getResult().getMazecells());
+	}
+	
+}

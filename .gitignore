@@ -1,6 +1,6 @@
 # SVN (old version control for project submissions)
-.svn
-.svn/
+#.svn
+#.svn/
 
 # Android Studio ignores ----
 #built application files

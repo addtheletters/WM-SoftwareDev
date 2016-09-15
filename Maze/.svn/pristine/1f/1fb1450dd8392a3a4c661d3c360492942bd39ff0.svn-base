@@ -1,0 +1,88 @@
+package falstad;
+
+import static org.junit.Assert.*;
+
+import org.junit.Before;
+import org.junit.Test;
+
+/**
+ * Provides tests for BasicRobotDriver's non-abstract functions.
+ * 
+ * @author Ben Zhang
+ *
+ */
+public class BasicRobotDriverTest extends BasicRobotDriver {
+	
+	/**
+	 * Acceptable floating-point number calculation error margin for equality testing
+	 */
+	private static final float ENERGY_FP_ERROR = 0.01f;
+
+	/**
+	 * Sets up essentials for testing a BasicRobotDriver. 
+	 * Assigns a controller using the input.xml maze, creates a robot, attaches all together.
+	 * @param brd the driver which should be set up
+	 */
+	public static void setUpBasicRobotDriver(BasicRobotDriver brd){
+		MazeController ctrlr = new MazeController("test/data/input.xml");
+		Robot rob = new BasicRobot();
+		rob.setMaze( ctrlr );
+		brd.reset();
+		brd.setRobot(rob);
+		ctrlr.init();
+	}
+	
+	@Before
+	public void setUp(){
+		setUpBasicRobotDriver(this);
+	}
+	
+	/**
+	 * Tests that BasicRobotDriver correctly registers moves taken, turns made, and saving history of robot's state.
+	 */
+	@Test
+	public final void testRegisterAndReset(){
+		assertEquals("No steps have been taken", 0, stepsTaken);
+		assertEquals("No state history has been saved", 0, this.positionHistory.size());
+		assertEquals("No energy used", 0, energyUsed, ENERGY_FP_ERROR);
+		
+		float startEnergy = robot.getBatteryLevel();
+		registerRobotReached();
+		assertEquals("State history size has increased", 1, this.positionHistory.size() );
+		
+		int firstMoveSize = 1;
+		registeredMove(firstMoveSize);
+		assertFalse("Reached position not in history", robotInPreviousState());
+		assertEquals("Steps have been taken", firstMoveSize, stepsTaken);
+		
+		registerRobotReached();
+		assertEquals("State history size has increased", 2, this.positionHistory.size() );
+		assertTrue("Can find position in history", robotInPreviousState());
+		
+		int secondMoveSize = 10;
+		registeredMove(secondMoveSize);
+		assertEquals("Steps have been taken", secondMoveSize + firstMoveSize, stepsTaken);
+		
+		float endEnergy = robot.getBatteryLevel();
+		registerEnergyUsed(startEnergy - endEnergy);
+		assertEquals("Used energy", (firstMoveSize + secondMoveSize) * robot.getEnergyForStepForward(), energyUsed, ENERGY_FP_ERROR);
+		
+		
+		
+		reset();
+		assertEquals("Reset steps taken to 0", 0, stepsTaken);
+		assertEquals("Reset history to contain nothing", 0, this.positionHistory.size());
+		assertEquals("Reset energy used", 0, energyUsed, ENERGY_FP_ERROR);
+	}
+	
+	
+	@Override
+	public boolean drive2Exit() throws Exception {
+		throw new UnsupportedOperationException("Test for abstract class does not have driving implemented.");
+	}
+
+	@Override
+	protected boolean driveStep() throws Exception {
+		throw new UnsupportedOperationException("Test for abstract class does not have driving implemented.");
+	}
+}

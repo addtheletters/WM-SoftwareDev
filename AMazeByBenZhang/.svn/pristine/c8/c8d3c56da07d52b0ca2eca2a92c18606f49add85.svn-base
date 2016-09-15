@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<instant-run
+    abi="armeabi-v7a,armeabi"
+    api-level="22"
+    density="xxxhdpi"
+    format="7"
+    timestamp="489348615303918"
+    token="6080596584745959753"
+    verifier="COMPATIBLE" >
+
+    <task
+        name="javac"
+        duration="3570" />
+    <task
+        name="instant-run-dex"
+        duration="1608" />
+    <task
+        name="instant-run-transform"
+        duration="98" />
+    <task
+        name="verifier"
+        duration="28" />
+
+    <artifact
+        location="C:\Users\Ben\AndroidStudioProjects\AMazeByBenZhang\app\build\intermediates\res\resources-debug.ap_"
+        type="RESOURCES" />
+    <artifact
+        location="C:\Users\Ben\AndroidStudioProjects\AMazeByBenZhang\app\build\intermediates\reload-dex\debug\classes.dex"
+        type="RELOAD_DEX" />
+
+    <build timestamp="487479463484456" >
+        <artifact
+            location="C:\Users\Ben\AndroidStudioProjects\AMazeByBenZhang\app\build\outputs\apk\app-debug.apk"
+            type="MAIN" />
+    </build>
+    <build timestamp="488584782965576" >
+        <artifact
+            location="C:\Users\Ben\AndroidStudioProjects\AMazeByBenZhang\app\build\intermediates\transforms\dex\debug\folders\1000\5\slice_2\classes.dex"
+            type="DEX" />
+        <artifact
+            location="C:\Users\Ben\AndroidStudioProjects\AMazeByBenZhang\app\build\intermediates\transforms\dex\debug\folders\1000\5\slice_0\classes.dex"
+            type="DEX" />
+        <artifact
+            location="C:\Users\Ben\AndroidStudioProjects\AMazeByBenZhang\app\build\intermediates\transforms\dex\debug\folders\1000\5\slice_3\classes.dex"
+            type="DEX" />
+    </build>
+    <build timestamp="488873157021407" >
+        <artifact
+            location="C:\Users\Ben\AndroidStudioProjects\AMazeByBenZhang\app\build\intermediates\transforms\dex\debug\folders\1000\5\slice_8\classes.dex"
+            type="DEX" />
+    </build>
+    <build
+        timestamp="489348615303918"
+        verifier="COMPATIBLE" >
+        <artifact
+            location="C:\Users\Ben\AndroidStudioProjects\AMazeByBenZhang\app\build\intermediates\res\resources-debug.ap_"
+            type="RESOURCES" />
+        <artifact
+            location="C:\Users\Ben\AndroidStudioProjects\AMazeByBenZhang\app\build\intermediates\reload-dex\debug\classes.dex"
+            type="RELOAD_DEX" />
+    </build>
+
+</instant-run>

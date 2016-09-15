@@ -1,0 +1,37 @@
+package falstad;
+
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
+import org.junit.Test;
+
+/**
+ * Provides tests for {@link Wizard} technique for solving maze.
+ * 
+ * @author Ben Zhang
+ *
+ */
+public class WizardTest extends Wizard {
+	
+	@Before
+	public void setUp(){
+		BasicRobotDriverTest.setUpBasicRobotDriver(this, new MazeController("test/data/input.xml"));
+	}
+	
+	/**
+	 * Test that WallFollower reaches the exit correctly. 
+	 * On input.xml maze, can take 30 seconds or more to run.
+	 */
+	@Test
+	public final void testReachesExit(){
+		boolean reachesExit = false;
+		try{
+			reachesExit = drive2Exit();
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			assertTrue("Should not have exception trying to reach exit", false);
+		}
+		assertTrue("Should reach exit", reachesExit);
+	}
+}

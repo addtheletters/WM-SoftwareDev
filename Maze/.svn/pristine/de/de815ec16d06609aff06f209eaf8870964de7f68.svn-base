@@ -1,0 +1,227 @@
+package falstad;
+
+import java.awt.Point;
+
+import generation.CardinalDirection;
+
+/**
+ * Basic implementation of Robot, with complete sensor suite.
+ * 
+ * CRC card:
+ * 
+ * BasicRobot (Robot)
+ * 
+ * Responsibilities:
+ * Movement (turning, stepping forwards) in maze
+ * Sensor information about surroundings
+ * Track battery capacity 
+ * 
+ * Collaborators:
+ * RobotDriver to control the robot
+ * MazeController to drive through 
+ * 
+ * @author Ben
+ *
+ */
+public class BasicRobot implements Robot {
+	
+	
+	private static final float INITIAL_BATTERY = 2500;
+	private static final float DISTANCE_SENSE_COST = 1;
+	private static final float ROTATE_360_COST = 12;
+	private static final float MOVE_COST = 5;
+	/*
+	 The initial battery level is 2500.
+	• The energy costs are:
+	• Distance sensing in one direction: 1
+	• Rotating left or right: 3 for 90 degrees, 6 for 180 degrees, 12 for 360 degrees
+	• Moving forward one step (one cell): 5
+	 */
+	
+	// current position
+	// current direction
+	// battery life remaining
+	// 'stopped' value?
+	private MazeController maze;
+	
+	//private Point position;
+	//private CardinalDirection facing;
+	private float battery;
+	private boolean stopped;
+	
+	public BasicRobot(MazeController controller){
+		maze = controller;
+		
+		//int[] pos = maze.getCurrentPosition();
+		//position = new Point(pos[0], pos[1]);
+		//facing = maze.getCurrentDirection();
+		battery = INITIAL_BATTERY;
+		stopped = false;
+	}
+	
+	@Override
+	public void rotate(Turn turn) {
+		//facing = worldDirectionOf(turnDirection(turn));
+		maze.rotate(turn);
+	}
+
+	@Override
+	public void move(int distance, boolean manual) {
+		for(int i = 0; i < distance; i++){
+			if(distanceToObstacle(Direction.FORWARD) > 0){
+				maze.walk(false);
+			}
+			else{
+				
+			}
+		}
+	}
+	
+	protected void attemptStepForward(){
+		
+	}
+
+	@Override
+	public int[] getCurrentPosition() throws Exception {
+		return maze.getCurrentPosition();//new int[] {position.x, position.y};
+	}
+	
+	/**
+	 * Wraps current position into a Point object and avoids need to handle exception specified by getCurrentPosition
+	 * @return Point representing the current position
+	 */
+	protected Point getCurrentPoint(){
+		int[] pos = maze.getCurrentPosition();
+		return new Point(pos[0], pos[1]);
+	}
+
+	@Override
+	public void setMaze(MazeController maze) {
+		this.maze = maze;
+	}
+
+	@Override
+	public boolean isAtGoal() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean canSeeGoal(Direction direction) throws UnsupportedOperationException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isInsideRoom() throws UnsupportedOperationException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean hasRoomSensor() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public CardinalDirection getCurrentDirection() {
+		return maze.getCurrentDirection();
+		//return facing;
+	}
+	
+	/**
+	 * Describes the direction that will result from a turn occurring.
+	 * @param turn the turn which may occur
+	 * @return the direction the turn will result in this robot facing
+	 */
+	protected Direction turnDirection(Turn turn){
+		switch(turn){
+		case AROUND:
+			return Direction.BACKWARD;
+		case LEFT:
+			return Direction.LEFT;
+		case RIGHT:
+			return Direction.RIGHT;
+		default:
+			System.err.println("BasicRobot: Unknown turn");
+			return Direction.FORWARD;
+		}
+	}
+
+	/**
+	 * Describes the cardinal direction that a particular robot direction currently represents
+	 * @param direction the robot-relative direction
+	 * @return the cardinal direction
+	 */
+	protected CardinalDirection worldDirectionOf( Direction direction ){
+		switch(direction){
+		case FORWARD:
+			return getCurrentDirection();
+		case BACKWARD:
+			return getCurrentDirection().oppositeDirection();
+		case LEFT:
+			return getCurrentDirection().rotateCounterCW();
+		case RIGHT:
+			return getCurrentDirection().rotateClockwise();
+		default:
+			System.err.println("BasicRobot: Unknown direction");
+			return getCurrentDirection();
+		}
+	}
+	
+	@Override
+	public float getBatteryLevel() {
+		return battery;
+	}
+
+	@Override
+	public void setBatteryLevel(float level) {
+		if(level < 0){
+			System.err.println("BasicRobot: Battery level should not be negative.");
+		}
+		this.battery = level;
+	}
+
+	@Override
+	public float getEnergyForFullRotation() {
+		return ROTATE_360_COST;
+	}
+
+	@Override
+	public float getEnergyForStepForward() {
+		return MOVE_COST;
+	}
+
+	@Override
+	public boolean hasStopped() {
+		return stopped;
+	}
+
+	@Override
+	public int distanceToObstacle(Direction direction) throws UnsupportedOperationException {
+		if(!hasDistanceSensor(direction)){
+			throw new UnsupportedOperationException("Direction " + direction + " is unsupported (no sensor).");
+		}
+		
+		boolean wallFound = false;
+		int distance = 0;
+		Point checkpos = getCurrentPoint();
+		CardinalDirection checkdir = worldDirectionOf(direction);
+		while(!wallFound){
+			if( maze.getMazeConfiguration().hasWall(checkpos.x, checkpos.y, checkdir) ){
+				wallFound = true;
+				break;
+			}
+			checkpos.translate(checkdir.getDirection()[0], checkdir.getDirection()[1]);
+			distance ++;
+		}
+		return distance;
+	}
+
+	@Override
+	public boolean hasDistanceSensor(Direction direction) {
+		return true;
+	}
+
+}

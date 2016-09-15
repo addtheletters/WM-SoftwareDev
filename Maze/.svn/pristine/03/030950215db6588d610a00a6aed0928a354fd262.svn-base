@@ -1,0 +1,43 @@
+package generation;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import generation.Order.Builder;
+
+public class MazeBuilderKruskalTest {
+	private MazeFactoryTest mft;
+	
+	@Before
+	public void setUp(){
+		mft = new MazeFactoryTest();
+		mft.setUp();
+	}
+	
+	@Test
+	public final void testOrderWhileBusyKruskal(){
+		mft.testOrderWhileBusy(Builder.Kruskal);
+	}
+	
+	@Test
+	public final void testPerfectImperfectKruskal(){
+		mft.placeOrderAndWait(Builder.Kruskal, false);
+		mft.placeOrderAndWait(Builder.Kruskal, true);
+	}
+	
+	@Test
+	public final void testSmoothCancelKruskal(){
+		mft.testSmoothCancel(Builder.Kruskal);
+	}
+	
+	@Test
+	public final void testDeterministicKruskal(){
+		mft.testDeterministic(Builder.Kruskal);
+	}
+	
+	@Test
+	public final void testNonDeterministicKruskal(){
+		mft.testNonDeterministic(Builder.Kruskal);
+	}
+	
+}

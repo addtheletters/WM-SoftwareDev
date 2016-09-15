@@ -1,0 +1,228 @@
+package edu.wm.cs.cs301.slidingpuzzle;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class SimplePuzzleState implements PuzzleState {
+
+	private int[][] current;
+	
+	private Operation lastOperation;
+	private ArrayDeque<PuzzleState> history;
+	
+	public SimplePuzzleState() {
+		lastOperation = null;
+		history = null;
+		current = null;
+	}
+	
+	public SimplePuzzleState(int dim, int emptySlots){
+		setToInitialState(dim, emptySlots);
+	}
+	
+	public SimplePuzzleState(SimplePuzzleState last, int[][] tiles, Operation op){
+		this.current = tiles;
+		this.lastOperation = op;
+		this.history = new ArrayDeque<PuzzleState>(last.getHistory());
+		this.history.addLast(last);
+		System.out.println(this.history.size());
+	}
+	
+	private static int numTiles(int dim, int emptySlots){
+		return (dim * dim) - emptySlots;
+	}
+	
+	private static int[][] swap(int[][] original, int row1, int col1, int row2, int col2){
+		//System.out.println("Swapping " + row1 + "," + col1 + " with " + row2 + "," + col2 );
+		int[][] altered = new int[original.length][original[0].length];
+		for(int i = 0; i < original.length; i++){
+			for(int j = 0; j < original[0].length; j++){
+				if(i == row1 && j == col1){
+					//System.out.println("found 1");
+					altered[i][j] = original[row2][col2];
+				}
+				else if (i == row2 && j == col2){
+					//System.out.println("found 2");
+					altered[i][j] = original[row1][col1];
+				}
+				else{
+					//System.out.println("copy");
+					altered[i][j] = original[i][j];
+				}
+			}
+		}
+		return altered;
+	}
+	
+	private static int getRowShift(Operation op){
+		switch (op) {
+			case MOVEDOWN:
+				return 1;
+			case MOVEUP:
+				return -1;
+			default:
+				return 0;
+		}
+	}
+	
+	private static int getColShift(Operation op){
+		switch (op) {
+			case MOVELEFT:
+				return -1;
+			case MOVERIGHT:
+				return 1;
+			default:
+				return 0;
+		}
+	}
+	
+	@Override
+	public void setToInitialState(int dimension, int numberOfEmptySlots) {
+		history = new ArrayDeque<PuzzleState>();
+		lastOperation = null;
+		
+		current = new int[dimension][dimension];
+		
+		int nslots = dimension * dimension;
+		int ntiles = numTiles(dimension, numberOfEmptySlots);
+		int filledTiles = 0;
+		while(filledTiles < nslots){
+			if(filledTiles < ntiles){
+				current[filledTiles / dimension][ filledTiles % dimension ] = filledTiles+1;
+			}
+			else{
+				current[filledTiles / dimension][ filledTiles % dimension ] = 0;
+			}
+			filledTiles ++;
+		}
+	}
+	
+	private ArrayDeque<PuzzleState> getHistory(){
+		return history;
+	}
+
+	@Override
+	public int getValue(int row, int column) {
+		return current[row][column];
+	}
+	
+	@Override
+	public PuzzleState getParent(){
+		return history.peekLast();
+	}
+
+	@Override
+	public Operation getOperation() {
+		return lastOperation;
+	}
+
+	@Override
+	public int getPathLength() {
+		return history.size();
+	}
+	
+	private boolean positionValid(int row, int col){
+		return (row >= 0 && col >= 0) && (row < current.length && col < current[0].length);
+	}
+	
+	private boolean canMoveTo(int row, int col){
+		return positionValid(row,col) && isEmpty(row, col);
+	}
+	
+	private ArrayList<Operation> findValidMoves(int row, int col){
+		ArrayList<Operation> candidates = new ArrayList<Operation>();
+		if(!positionValid(row, col)) return candidates; // no valid moves if start position is off the grid
+		if(canMoveTo(row + 1, col)) candidates.add(Operation.MOVEDOWN);
+		if(canMoveTo(row - 1, col)) candidates.add(Operation.MOVEUP);
+		if(canMoveTo(row, col + 1)) candidates.add(Operation.MOVERIGHT);
+		if(canMoveTo(row, col - 1)) candidates.add(Operation.MOVELEFT);
+		return candidates;
+	}
+
+	@Override
+	public PuzzleState move(int row, int column, Operation op) {
+		if(!positionValid(row, column)){
+			System.err.println("Move position invalid (" + row + "," + column + ").");
+			return null;
+		}
+		ArrayList<Operation> possible = findValidMoves(row, column);
+		if(possible.contains(op)){
+			int[][] changed = swap(this.current, row, column, row+getRowShift(op), column+getColShift(op));
+			return new SimplePuzzleState(this, changed, op);
+		}
+		return null;
+	}
+
+	@Override
+	public PuzzleState flip(int startRow, int startColumn, int endRow, int endColumn) {
+		// TODO implement
+		// This should be a sequence of moves, each of which uses the 3-arg constructor
+		// in order to build up the proper history chain.
+		// Basically what this must do is search for / pathfind from the start to the end
+		// with empty tiles as valid space for the search to follow. Breadth-first?
+		class Pair{
+			int row;
+			int col;
+			public Pair(int r, int c){
+				this.row = r;
+				this.col = c;
+			}
+			public int hashCode(){
+				return this.row ^ this.col;
+			}
+			public boolean equals(Object obj){
+				if(obj instanceof Pair){
+					Pair po = (Pair)obj;
+					return this.row == po.row && this.col == po.col;
+				}
+				return false;
+			}
+		}
+		Pair target = new Pair(endRow, endColumn);
+		ArrayDeque<Pair> searchqueue = new ArrayDeque<Pair>();
+		searchqueue.push( new Pair(startRow, startColumn) );
+		while(searchqueue.size() > 0){
+			Pair loc = searchqueue.pop();
+			if(loc == target){
+				return null; // found!
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public PuzzleState shuffleBoard(int pathLength) {
+		// TODO implement
+		// Should look at available moves for each board state, choose randomly between them
+		// avoiding moves that put a state into one that is the same as the previous
+		// naturally it should do this using move() or similar, tracking history
+		return null;
+	}
+
+	@Override
+	public boolean isEmpty(int row, int column) {
+		return current[row][column] == 0;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Arrays.deepHashCode(this.current);
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof SimplePuzzleState){
+			return this.hashCode() == obj.hashCode();
+		}
+		return false;
+	}
+	
+	public String toString(){
+		String out =	"=SimplePuzzleState=\n";
+		for(int[] a : current)
+			out += Arrays.toString(a) + "\n";
+		out +=			"===================";
+		return out;
+	}
+}

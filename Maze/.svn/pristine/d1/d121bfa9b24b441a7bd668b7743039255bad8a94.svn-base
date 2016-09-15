@@ -1,0 +1,144 @@
+package generation;
+
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+
+public class MazeBuilderKruskal extends MazeBuilder {
+
+	public MazeBuilderKruskal() {
+		this(false);
+	}
+
+	public MazeBuilderKruskal(boolean deterministic) {
+		super(deterministic);
+		System.out.println("MazeBuilderKruskal uses Kruskal's algorithm to generate the maze.");
+	}	
+	
+	
+	// types all subject to change below
+
+	@Override
+	protected void generatePathways(){
+		//System.out.println("Width and height are " + width + "," + height);
+		
+		// Create a forest set of all points as size-1 trees
+		// Each 'tree' gets a unique tree number > 0
+		HashMap<Point, Integer> forest = new HashMap<Point, Integer>();
+		HashSet<Integer> existingTrees;
+		int treeNum = 0;
+		for(int i = 0; i < width; i++){
+			for(int j = 0; j < height; j++){
+				treeNum ++;
+				forest.put( new Point(i,j), treeNum );
+			}
+		}
+		existingTrees = new HashSet<Integer>(forest.values());
+		// While there exist more than one trees
+				// Pick a random tree
+				// Find all neighboring trees
+				// Pick a neighboring tree and join it in
+					// This join means destroying a wall
+		int wallsDestroyed = 0;
+		
+		while( existingTrees.size() > 1){
+			//System.out.println( "existing tree count is " + existingTrees.size() );
+			// grab a random tree from the ones in existence
+			Point[] forestPoints = new Point[forest.keySet().size()];
+			forest.keySet().toArray(forestPoints);
+			Point examined = forestPoints[ random.nextIntWithinInterval(0, forestPoints.length-1) ];
+			
+			List<Wall> destroyableWalls = findTreeDestroyableWalls(forest.get(examined), forest);
+			// or move destoyableWalls outside the loop, and do addAll(findSetDestroyableWalls()); // like how Prim does it
+			if(destroyableWalls.size() > 0){
+				//System.out.println("There are destoryable walls. Destroying one.");
+				wallsDestroyed ++;
+				// pick one wall and destroy it
+				Wall selected = destroyableWalls.remove( random.nextIntWithinInterval(0, destroyableWalls.size()-1) );
+				assert( cells.canGo(selected) );
+				cells.deleteWall(selected);
+				
+				// then do the union to merge the 'trees'
+				joinTree( forest, forest.get(examined), forest.get(new Point(selected.getNeighborX(), selected.getNeighborY())) );
+				// update the set tracking which tree IDs still exist
+				existingTrees = new HashSet<Integer>(forest.values());
+			}
+		}
+		
+		//System.out.println("Walls destroyed: " + wallsDestroyed);
+	}
+	
+	/**
+	 * Joins the cells in joinTree to the cells in baseTree. Resulting cells all have an identifying tree integer of baseTree.
+	 * @param forest
+	 * @param baseTree
+	 * @param joinTree
+	 */
+	protected void joinTree( HashMap<Point, Integer> forest, int baseTree, int joinTree ){
+		for(Point p: forest.keySet()){
+			if( forest.get(p) == joinTree ){
+				forest.put(p, baseTree);
+			}
+		}
+	}
+	
+	/**
+	 * Finds all maze cells which are neighbors of the given tree of cells
+	 * @param tree the integer representing the tree to be examined
+	 * @param forest defines the forest by describing which tree each cell belongs to
+	 * @return list of all valid walls neighboring any of the tree's cells
+	 */
+	protected List<Wall> findTreeDestroyableWalls( int tree, HashMap<Point, Integer> forest ){
+		List<Wall> neighborWalls = new ArrayList<Wall>();
+		for(Point p : forest.keySet()){ 
+			if(forest.get(p) == tree){ // for all points in the tree
+				neighborWalls.addAll( findCellValidWalls(p, tree, forest) );
+			}
+		}
+		return neighborWalls;
+	}
+	
+	/**
+	 * Returns list of valid neighbor walls of the cell which are not in the same tree
+	 * @param cell the cell to be examined
+	 * @param tree the integer representing the tree to be examined
+	 * @param forest defines the forest by describing which tree each cell belongs to
+	 * @return list of all valid walls to other trees neighboring the cell
+	 */
+	protected List<Wall> findCellValidWalls( Point cell, int tree, HashMap<Point, Integer> forest ){
+		List<Wall> neighbors = new ArrayList<Wall>();
+		addNeighborIfValid( neighbors, cell, CardinalDirection.North, tree, forest );
+		addNeighborIfValid( neighbors, cell, CardinalDirection.South, tree, forest );
+		addNeighborIfValid( neighbors, cell, CardinalDirection.East, tree, forest );
+		addNeighborIfValid( neighbors, cell, CardinalDirection.West, tree, forest );
+		return neighbors;
+	}
+	
+	protected void addNeighborIfValid( Collection<Wall> group, Point cell, CardinalDirection dir, int tree, HashMap<Point, Integer> forest ){
+		Point neighbor = new Point(cell.x + dir.getDirection()[0] , cell.y + dir.getDirection()[1]);
+		if( !pointInCellGrid(neighbor) ){
+			//System.out.println("'Neighbor' is not in grid: " + neighbor.x + "," + neighbor.y);
+			return;
+		}
+		if( forest.get(neighbor) != tree ){
+			Wall neighborWall = new Wall(cell.x, cell.y, dir) ;
+			if( cells.canGo(neighborWall) ){
+				group.add( neighborWall );
+			}
+			else{
+				//System.out.println("cells determined that neighbor wall cannot be destroyed. " + neighborWall );
+			}
+		}
+		else{
+			//System.out.println("Neighbor is in same tree already.");
+		}
+	}
+	
+	protected boolean pointInCellGrid( Point p ){
+		return (p.x >= 0) && (p.y >= 0) && (p.x < width) && (p.y < height);
+	}
+	
+}
